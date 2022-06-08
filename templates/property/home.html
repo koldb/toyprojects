@@ -1,0 +1,15 @@
+{% extends "base/base2.html" %}
+{% block content %}
+{% load humanize %}
+{% load filter %}
+<div>
+    <ul>
+        <li>
+            <a class="nav-link" href="{% url 'property:index' %}">받아오기</a>
+        </li>
+    </ul>
+
+</div>
+
+
+{% endblock %}

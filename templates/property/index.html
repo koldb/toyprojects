@@ -1,0 +1,38 @@
+{% extends "base/base2.html" %}
+{% block content %}
+{% load humanize %}
+<style>
+    tr, td, th{
+        border : 1px solid #dcdcdc;
+        width : 350px;
+        margin: 0 auto;
+    }
+    table {
+    text-align: center;
+    margin-left:auto;
+    margin-right:auto;
+    }
+
+</style>
+
+
+<div>
+
+    <table>
+        <tr>
+            <th style="width:6%; font-size: 25px;">항목</th>
+            <th style="width:10%; font-size: 25px;">환율</th>
+        </tr>
+        {% for i in flist %}
+        <tr>
+            <td>{{ i.ntitle }}</td>
+            <td>{{ i.nnum |intcomma}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+</div>
+
+
+{% endblock %}

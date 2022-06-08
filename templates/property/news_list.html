@@ -1,0 +1,99 @@
+{% extends "base/base2.html" %}
+{% block content %}
+{% load filter %}
+
+<style>
+    table {
+    text-align: center;
+    margin-left:auto;
+    margin-right:auto;
+    }
+    tr, td, th{
+        border : 1px solid #dcdcdc;
+        width : 350px;
+        margin: 0 auto;
+    }
+    tr.m:hover{
+     background-color: #98bee0;
+     cursor:pointer;
+    }
+    #paging{
+        width:150px;
+        margin:0 auto;
+    }
+
+</style>
+
+
+<!--검색창 부분-->
+<div>
+    <form action="{% url 'property:naver_list' %}" method="GET">
+        {% csrf_token %}
+        <select name="sort" id="sort">
+            <option value="news_title" id="news_title">Title</option>
+            <option value="writing" id="writing">언론사</option>
+        </select>
+        <input type="search" placeholder="Tilte / 언론사 검색 가능" class="form-control mr-sm-2" name="q" value="{{ query }}">
+        <button class="btn btn-secondary my-2 my-sm-0" type="submit"><i class="fas fa-search">검색</i></button>
+    </form>
+</div>
+
+
+
+<!--리스트 부분-->
+<div>
+    <table>
+        <tr>
+            <th style="width:3%;">순번</th>
+            <th style="width:15%;">제목</th>
+            <th style="width:5%;">언론사</th>
+            <th style="width:20%;">간략 내용</th>
+            <th style="width:5%;">등록 시간</th>
+        </tr>
+
+        {% if page_obj %}
+        {% for news in page_obj %}
+        <tr class="m" onclick="location.href='{% url 'property:naver_view' news.id %}'">
+            <td>{{ page_obj.paginator.count|sub:page_obj.start_index|sub:forloop.counter0|add:1   }}</td>
+            {% if news.comm != None %}
+            <td>{{ news.news_title }} <span style="color: red;">[{{ news.comm }}]</span></td>
+            {% else %}
+            <td>{{ news.news_title }}</td>
+            {% endif %}
+            <td>{{ news.writing }}</td>
+            <td>{{ news.lede | truncatewords:10 }}</td>
+            {% if news.time1 == None %}
+            <td>{{ news.time2 }}</td>
+            {% else %}
+            <td>{{ news.time1 }}</td>
+            {% endif %}
+        </tr>
+
+        {% endfor %}
+        {% else %}
+        <p>에러</p>
+        {% endif %}
+
+    </table>
+</div>
+
+<!--페이징 부분-->
+<div class = "container" id="paging">
+    {#first previous#}
+    {% if page_obj.has_previous %}
+    <a href="?q={{ query }}&page_obj={{ page_obj }}&page=1&sort={{sort}}">First</a>
+    <a href="?q={{ query }}&page_obj={{ page_obj }}&page={{page_obj.previous_page_number}}&sort={{sort}}">Previous</a>
+    {% endif %}
+    {# 3of4 #}
+    <span>{{page_obj.number}}</span>
+    <span>of</span>
+    <span>{{page_obj.paginator.num_pages}}</span>
+    {# Next Last #}
+    {% if page_obj.has_next %}
+    <a href="?q={{ query }}&page_obj={{ page_obj }}&page={{page_obj.next_page_number}}&sort={{sort}}">Next</a>
+    <a href="?q={{ query }}&page_obj={{ page_obj }}&page={{page_obj.paginator.num_pages}}&sort={{sort}}">Last</a>
+    {%endif%}
+</div>
+
+
+{% endblock %}
