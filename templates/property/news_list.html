@@ -48,7 +48,7 @@
             <th style="width:15%;">제목</th>
             <th style="width:5%;">언론사</th>
             <th style="width:20%;">간략 내용</th>
-            <th style="width:5%;">등록 시간</th>
+            <th style="width:5%;">등록 일자</th>
         </tr>
 
         {% if page_obj %}
@@ -62,11 +62,7 @@
             {% endif %}
             <td>{{ news.writing }}</td>
             <td>{{ news.lede | truncatewords:10 }}</td>
-            {% if news.time1 == None %}
-            <td>{{ news.time2 }}</td>
-            {% else %}
-            <td>{{ news.time1 }}</td>
-            {% endif %}
+            <td>{{ news.rg_date | date:'Y-m-d H:i:s' }}</td>
         </tr>
 
         {% endfor %}

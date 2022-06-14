@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django_crontab',
     'property',
     'accounts',
 ]
@@ -140,4 +141,6 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+CRONJOBS = [
+    ('0 */1 * * *', 'property.news_insert.naver_news_insert', '>> crontab.log')
+]

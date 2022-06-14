@@ -105,6 +105,10 @@ const comm_save = (no) => {
         <input type="text" class="form-control" name="news_titl" id="news_titl" value="{{ detail_news.news_title }}" readonly>
     </div>
     <div class="mb-3">
+        <label for="rg_date">등록 일자</label>
+        <input type="text" class="form-control" name="rg_date" id="rg_date" value="{{ detail_news.rg_date }}" readonly>
+    </div>
+    <div class="mb-3">
         <label for="writing">언론사</label>
         <input type="text" class="form-control" name="writing" id="writing" value="{{ detail_news.writing }}" readonly>
     </div>

@@ -159,10 +159,6 @@ def naver_news_insert(request):
         # area_list = [li.find('dt', {'class' : 'photo'}) for li in li_list]
         a_list = [area.find('a') for area in area_list]
         span_list = [area.find('span') for area in dd_list]
-        global time1
-        global time2
-        time1 = None
-        time2 = None
 
 
         print(len(pages.find_all('a')))
@@ -203,15 +199,6 @@ def naver_news_insert(request):
                 news_url = n.find('a').get('href')
                 lede = n.find('span').text.strip()
                 writing = n.find('span', {'class': 'writing'})
-                time_1 = n.find('span', {'class': 'date is_new'})
-                time_2 = n.find('span', {'class': 'date is_outdated'})
-                if time_1 == None:
-                    time2 = re.sub(r'[^0-9]','',time_2.text.strip())
-                    #print('title 있음 time2: ', re.sub(r'[^0-9]','',time2))
-                else:
-                    time1 = re.sub(r'[^0-9]','',time_1.text.strip())
-                    #print('title 있음  time1: ', re.sub(r'[^0-9]','',time1))
-
                 if writing == None:
                     print('title 있음 pass')
                     pass
@@ -222,15 +209,6 @@ def naver_news_insert(request):
                 news_url = n.find('a').get('href')
                 lede = n.find('span').text.strip()
                 writing = n.find('span', {'class': 'writing'})
-                time_1 = n.find('span', {'class': 'date is_new'})
-                time_2 = n.find('span', {'class': 'date is_outdated'})
-                if time_1 == None:
-                    time2 = re.sub(r'[^0-9]','',time_2.text.strip())
-                    #print('title 사진 time2: ', re.sub(r'[^0-9]','',time2))
-                else:
-                    time1 = re.sub(r'[^0-9]','',time_1.text.strip())
-                    #print('title 사진  time1: ', re.sub(r'[^0-9]','',time1))
-
                 if writing == None:
                     print('title 사진 pass')
                     pass
@@ -243,15 +221,8 @@ def naver_news_insert(request):
                     news_title=news_title,
                     news_url=news_url,
                     lede=lede,
-                    writing=writing,
-                    time1=time1,
-                    time2=time2
+                    writing=writing
                 ).save()
-            else:
-                old = get_object_or_404(newsList, news_url=news_url)
-                old.time1 = time1
-                old.time2 = time2
-                old.save()
     return redirect('property:naver_list')
 
 
