@@ -1,12 +1,26 @@
+import sys
+
+sys.path.append('../..')
+#app 없이 외부에서 실행시 필요한 코드(하단 8번째 줄까지)
+import os
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
+import django
+
+django.setup()
+
+from property.models import newsList, news_comment
 from django.shortcuts import render, redirect, get_object_or_404
 import requests
 import urllib.request as req
+import os
+
 
 from pandas import DataFrame
 from bs4 import BeautifulSoup, Comment
 from datetime import datetime
-import os
-from .models import newsList, news_comment
+
 from django.core.paginator import Paginator
 import datetime
 from datetime import date
@@ -15,11 +29,10 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 import json
 from django.urls import reverse
-from .decorators import login_required
+from property.decorators import login_required
 import re
 
-
-def naver_news_insert(request):
+def naver_news_insert():
     print('크롤링 시작')
 
     urls = 'https://news.naver.com/main/list.naver?mode=LS2D&mid=shm&sid1=101&sid2=260'
@@ -55,20 +68,38 @@ def naver_news_insert(request):
 
         print(len(pages.find_all('a')))
         print('cur : ', cur_page)
-        if cur_page == len(pages.find_all('a')):
+        #if cur_page == len(pages.find_all('a')):
+        if 10 <= cur_page < len(pages.find_all('a')):
             try:
+                print('cur 동일 ')
                 next_page_url = [p for p in pages.find_all('a') if p.text == str(cur_page + 1)][0].get('href')
-                print('cur 작다 try : ', next_page_url)
+                print(next_page_url)
+                cur_page += 1
             except:
-                print('cur 동일 브레이크')
-                break
-        elif 0 <= cur_page < len(pages.find_all('a')):
+                next_page_url = [p for p in pages.find_all('a') if p.text == '다음'][0].get('href')
+                print('cur 작다 try : ', next_page_url)
+                cur_page += 1
+        elif cur_page == 10:
+                next_page_url = [p for p in pages.find_all('a') if p.text == '다음'][0].get('href')
+                print('cur 작다 try : ', next_page_url)
+                cur_page += 1
+
+        elif 0 <= cur_page < 10:
             try:
                 next_page_url = [p for p in pages.find_all('a') if p.text == str(cur_page + 1)][0].get('href')
                 print('cur 크다 try : ', next_page_url)
+                cur_page -= 1
             except:
                 next_page_url = [p for p in pages.find_all('a') if p.text == '이전'][0].get('href')
                 print('cur 작다 except : ', next_page_url)
+                cur_page -= 1
+        elif cur_page > len(pages.find_all('a')):
+            try:
+                next_page_url = [p for p in pages.find_all('a') if p.text == str(cur_page + 1)][0].get('href')
+                print('cur 크다2 try ', next_page_url)
+                cur_page += 1
+            except:
+                cur_page = 9
         elif cur_page == -1:
             print('cur = 0 끝')
             break
@@ -77,7 +108,7 @@ def naver_news_insert(request):
         soup = BeautifulSoup(req.text, 'html.parser')
         pages = soup.find('div', {'class': 'paging'})
 
-        cur_page -= 1
+
 
         main = soup.find('div', {'class': 'list_body newsflash_body'})
 
@@ -115,3 +146,6 @@ def naver_news_insert(request):
                     lede=lede,
                     writing=writing
                 ).save()
+
+
+naver_news_insert()
