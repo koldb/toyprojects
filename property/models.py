@@ -11,8 +11,6 @@ class newsList(models.Model):
     rg_date = models.DateTimeField(auto_now_add=True, verbose_name='등록일')
     lede = models.CharField(max_length=100, verbose_name='짧은 내용',  null=True, blank=True)
     writing = models.CharField(max_length=50, verbose_name='언론사', null=True, blank=True)
-    time1 = models.CharField(max_length=50, verbose_name='시간 1', null=True, blank=True)
-    time2 = models.CharField(max_length=50, verbose_name='시간 2', null=True, blank=True)
     comm = models.PositiveIntegerField(null=True, verbose_name='댓글 수')
 
     class Meta:

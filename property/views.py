@@ -3,7 +3,7 @@ import requests
 import urllib.request as req
 
 from pandas import DataFrame
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from datetime import datetime
 import os
 from .models import newsList, news_comment
@@ -16,7 +16,7 @@ from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 import json
 from django.urls import reverse
 from .decorators import login_required
-
+import re
 
 
 def index(request):
@@ -34,9 +34,8 @@ def index(request):
     i = 0
     for c_list in soup:
         try:
-            #print(i + 1, name_nation[i].text, name_price[i].text)
 
-            nlist[i] = {'ntitle' : name_nation[i].text, 'nnum' : name_price[i].text }
+            nlist[i] = {'ntitle': name_nation[i].text, 'nnum': name_price[i].text}
 
             i = i + 1
         except IndexError:
@@ -136,10 +135,12 @@ def naver_news_insert(request):
     res = requests.get(urls, headers=header)
     soup = BeautifulSoup(res.text, 'html.parser')
 
-    cur_page = 1
+
     print('크롤링 중...')
 
     pages = soup.find('div', {'class': 'paging'})
+    #cur_page = 1
+    cur_page = len(pages.find_all('a'))
 
     # cur_page = len(pages.find_all('a')) + 1
     # news = newsList.objects.all()
@@ -163,7 +164,38 @@ def naver_news_insert(request):
         time1 = None
         time2 = None
 
-        for n in li_list:
+
+        print(len(pages.find_all('a')))
+        print('cur : ', cur_page)
+        if cur_page == len(pages.find_all('a')):
+            try:
+                next_page_url = [p for p in pages.find_all('a') if p.text == str(cur_page + 1)][0].get('href')
+                print('cur 작다 try : ', next_page_url)
+            except:
+                print('cur 동일 브레이크')
+                break
+        elif 0 <= cur_page < len(pages.find_all('a')):
+            try:
+                next_page_url = [p for p in pages.find_all('a') if p.text == str(cur_page + 1)][0].get('href')
+                print('cur 크다 try : ', next_page_url)
+            except:
+                next_page_url = [p for p in pages.find_all('a') if p.text == '이전'][0].get('href')
+                print('cur 작다 except : ', next_page_url)
+        elif cur_page == -1:
+            print('cur = 0 끝')
+            break
+
+        req = requests.get('https://news.naver.com/main/list.naver' + next_page_url, headers=header)
+        soup = BeautifulSoup(req.text, 'html.parser')
+        pages = soup.find('div', {'class': 'paging'})
+
+        cur_page -= 1
+
+        main = soup.find('div', {'class': 'list_body newsflash_body'})
+
+        li_list2 = main.find_all('dl')
+
+        for n in li_list2:
             news_title = n.find('a').text.strip()
 
             if news_title != "":
@@ -174,16 +206,17 @@ def naver_news_insert(request):
                 time_1 = n.find('span', {'class': 'date is_new'})
                 time_2 = n.find('span', {'class': 'date is_outdated'})
                 if time_1 == None:
-                    time2 = time_2.text.strip()
+                    time2 = re.sub(r'[^0-9]','',time_2.text.strip())
+                    #print('title 있음 time2: ', re.sub(r'[^0-9]','',time2))
                 else:
-                    time1 = time_1.text.strip()
+                    time1 = re.sub(r'[^0-9]','',time_1.text.strip())
+                    #print('title 있음  time1: ', re.sub(r'[^0-9]','',time1))
 
                 if writing == None:
+                    print('title 있음 pass')
                     pass
                 else:
                     writing = writing.text.strip()
-
-
             else:
                 news_title = n.find('img').get('alt').strip()
                 news_url = n.find('a').get('href')
@@ -192,11 +225,14 @@ def naver_news_insert(request):
                 time_1 = n.find('span', {'class': 'date is_new'})
                 time_2 = n.find('span', {'class': 'date is_outdated'})
                 if time_1 == None:
-                    time2 = time_2.text.strip()
+                    time2 = re.sub(r'[^0-9]','',time_2.text.strip())
+                    #print('title 사진 time2: ', re.sub(r'[^0-9]','',time2))
                 else:
-                    time1 = time_1.text.strip()
+                    time1 = re.sub(r'[^0-9]','',time_1.text.strip())
+                    #print('title 사진  time1: ', re.sub(r'[^0-9]','',time1))
 
                 if writing == None:
+                    print('title 사진 pass')
                     pass
                 else:
                     writing = writing.text.strip()
@@ -216,25 +252,6 @@ def naver_news_insert(request):
                 old.time1 = time1
                 old.time2 = time2
                 old.save()
-
-        if cur_page <= len(pages.find_all('a')):
-            try:
-                next_page_url = [p for p in pages.find_all('a') if p.text == str(cur_page + 1)][0].get('href')
-            except:
-                next_page_url = [p for p in pages.find_all('a') if p.text == '다음'][0].get('href')
-        elif cur_page > len(pages.find_all('a')):
-            try:
-                next_page_url = [p for p in pages.find_all('a') if p.text == str(cur_page + 1)][0].get('href')
-            except:
-                break
-        elif cur_page == 60:
-            break
-
-        req = requests.get('https://news.naver.com/main/list.naver' + next_page_url, headers=header)
-        soup = BeautifulSoup(req.text, 'html.parser')
-        pages = soup.find('div', {'class': 'paging'})
-
-        cur_page += 1
     return redirect('property:naver_list')
 
 
@@ -253,7 +270,8 @@ def naver_list(request):
     elif sort == 'writing':
         nlist = newsList.objects.filter(Q(writing__icontains=query), rg_date__gte=date.today()).order_by('rg_date')
     else:
-        nlist = newsList.objects.filter(rg_date__gte=date.today()).order_by('rg_date')
+        print('리스트')
+        nlist = newsList.objects.filter(rg_date__gte=date.today()).order_by('-rg_date')
 
     page = request.GET.get('page', '1')
     paginator = Paginator(nlist, 20)
@@ -279,8 +297,19 @@ def naver_view(request, pk):
 
     main = soup.find('div', {'class': 'go_trans _article_content'})
 
+
+    for x in main.find_all("br"):
+        print('1번쨰 : ', x)
+        x.replace_with("\n")
+        print('1번쨰 끝 : ', x)
+
+    #
+    # main_con = "".join([str(x) for x in main.contents])  # 최상위 태그 제거(=innerHtml 추출)
+    # text = main_con.strip()
+
     text = main.text.strip()
 
+    print(text)
     context = {'detail_news': detail_news, 'text': text, 'nickname': nickname, 'comments': comments}
     return render(request, 'property/news_view.html', context)
 
@@ -340,7 +369,3 @@ def comment_modify(request):
         print('댓글 수정 성공')
         return JsonResponse(context);
     return JsonResponse(context)
-
-
-
-
