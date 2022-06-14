@@ -142,5 +142,5 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CRONJOBS = [
-    ('*/1 * * * *', 'news_insert.naver_news_insert', '>> /home/crontab.log')
+    ('*/30 * * * *', 'news_insert.naver_news_insert', '>> /home/crontab.log')
 ]

@@ -33,7 +33,7 @@ from property.decorators import login_required
 import re
 
 def naver_news_insert():
-    print('크롤링 시작')
+    print('크롤링 시작 => ', datetime.now())
 
     urls = 'https://news.naver.com/main/list.naver?mode=LS2D&mid=shm&sid1=101&sid2=260'
     header = {'User-Agent': 'Mozilla/5.0'}
@@ -146,6 +146,7 @@ def naver_news_insert():
                     lede=lede,
                     writing=writing
                 ).save()
+
 
 
 naver_news_insert()
